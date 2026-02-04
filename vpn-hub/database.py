@@ -13,7 +13,9 @@ def iniciar_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre TEXT UNIQUE,
             public_key TEXT,
-            ip_virtual TEXT
+            ip_virtual TEXT,
+            last_seen DATETIME,
+            status TEXT
         )
     ''')
 

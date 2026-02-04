@@ -37,8 +37,6 @@ def generar_claves():
 
     return private_key, public_key
 
-
-
 def escribir_config(data, private_key_path):
     with open(private_key_path) as f:
         private_key = f.read().strip()

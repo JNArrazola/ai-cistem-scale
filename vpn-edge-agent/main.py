@@ -3,6 +3,9 @@ from dotenv import load_dotenv
 
 from wireguard import generar_claves, escribir_config, levantar_tunel
 from bootstrap import registrar_en_hub
+from functions import heartbeat
+
+import time
 
 load_dotenv()
 
@@ -23,7 +26,10 @@ def main():
     escribir_config(data, private_key)
     levantar_tunel()
 
+    while True:
+        heartbeat(hub_url, nombre)
+        print(f"Heartbeat enviado desde '{nombre}' al hub '{hub_url}'")
+        time.sleep(int(os.getenv("HEARTBEAT_INTERVAL", 30)))
+
 if __name__ == "__main__":
-    print("CWD:", os.getcwd())
-    print("ENV EXISTS:", os.path.exists(".env"))
     main()

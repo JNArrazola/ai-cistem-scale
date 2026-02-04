@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
 from database import iniciar_db, asignar_ip_dinamica
+import time
 
 load_dotenv()
 app = Flask(__name__)
@@ -34,6 +35,15 @@ def guards(nombre, token, public_key):
     
     return None
 
+def marcar_offline():
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE jetsons
+        SET status = 'offline'
+        WHERE last_seen < datetime('now', '-60 seconds')
+    """)
+    conn.commit()
+
 @app.route('/registrar', methods=['POST'])
 def registrar_jetson():
     datos = request.json or {}
@@ -58,7 +68,44 @@ def registrar_jetson():
         "hub_endpoint": f"{os.getenv('HUB_ENDPOINT')}:{os.getenv('HUB_PORT', '51820')}"
     })
 
+@app.route("/agents", methods=["GET"])
+def listar_agentes():
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT nombre, ip_virtual, last_seen, status
+        FROM jetsons
+    """)
+    rows = cursor.fetchall()
+
+    return jsonify([
+        {
+            "nombre": r["nombre"],
+            "ip": r["ip_virtual"],
+            "status": r["status"],
+            "last_seen": r["last_seen"]
+        }
+        for r in rows
+    ])
+
+@app.route("/heartbeat", methods=["POST"])
+def heartbeat():
+    nombre = request.json.get("nombre")
+    if not nombre:
+        return "", 400
+
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE jetsons
+        SET last_seen = ?, status = 'connected'
+        WHERE nombre = ?
+    """, (datetime.utcnow(), nombre))
+    conn.commit()
+
+    return "", 204
 
 if __name__ == '__main__':
     configurar_red_sistema()
-    app.run(host='10.0.0.1', port=5000)
+    app.run(host='0.0.0.0', port=5000)
+    while True:
+        marcar_offline()
+        time.sleep(30)
