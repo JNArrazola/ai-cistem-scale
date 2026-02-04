@@ -11,5 +11,9 @@ def registrar_en_hub(hub_url, nombre, public_key, token):
     }
 
     r = requests.post(f"{hub_url}/registrar", json=payload, timeout=10)
-    r.raise_for_status()
+    # r.raise_for_status()
+    if not r.ok: 
+        print("STATUS: ", r.status_code)
+        print("RESPONSE: ", r.text)
+        r.raise_for_status()
     return r.json()

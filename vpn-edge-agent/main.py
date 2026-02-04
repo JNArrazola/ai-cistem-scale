@@ -11,10 +11,19 @@ def main():
     hub_url = os.getenv("HUB_URL")
     token = os.getenv("BOOTSTRAP_TOKEN")
 
+    print(f"Registrando nodo '{nombre}' en el hub '{hub_url}' con token '{token}'")
+
     private_key, public_key = generar_claves()
+
+    print(f"Claves generadas para el nodo '{nombre}':")
+    print(f"  - Private Key: {private_key}")
+    print(f"  - Public Key: {public_key}")
+
     data = registrar_en_hub(hub_url, nombre, public_key, token)
     escribir_config(data, private_key)
     levantar_tunel()
 
 if __name__ == "__main__":
+    print("CWD:", os.getcwd())
+    print("ENV EXISTS:", os.path.exists(".env"))
     main()

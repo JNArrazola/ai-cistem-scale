@@ -10,13 +10,34 @@ def generar_claves():
     public_key = f"{KEY_DIR}/public.key"
 
     if not os.path.exists(private_key):
-        subprocess.run(
-            f"wg genkey | tee {private_key} | wg pubkey > {public_key}",
-            shell=True,
+        result = subprocess.run(
+            ["wg", "genkey"],
+            capture_output=True,
+            text=True,
             check=True
         )
 
+        priv = result.stdout.strip()
+
+        with open(private_key, "w") as f:
+            f.write(priv)
+
+        result = subprocess.run(
+            ["wg", "pubkey"],
+            input=priv,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+
+        pub = result.stdout.strip()
+
+        with open(public_key, "w") as f:
+            f.write(pub)
+
     return private_key, public_key
+
+
 
 def escribir_config(data, private_key_path):
     with open(private_key_path) as f:
@@ -26,12 +47,11 @@ def escribir_config(data, private_key_path):
 [Interface]
 PrivateKey = {private_key}
 Address = {data['ip_virtual']}/24
-DNS = 10.0.0.1
 
 [Peer]
 PublicKey = {data['hub_public_key']}
 Endpoint = {data['hub_endpoint']}
-AllowedIPs = 10.0.0.0/0
+AllowedIPs = 10.0.0.0/24
 PersistentKeepalive = 25
 """
 
