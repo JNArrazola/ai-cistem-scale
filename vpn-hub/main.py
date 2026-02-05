@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 
 from database import iniciar_db, asignar_ip_dinamica
 import time
+from datetime import datetime
+import threading
 
 load_dotenv()
 app = Flask(__name__)
@@ -43,6 +45,11 @@ def marcar_offline():
         WHERE last_seen < datetime('now', '-60 seconds')
     """)
     conn.commit()
+
+def offline_worker():
+    while True:
+        marcar_offline()
+        time.sleep(30)
 
 @app.route('/registrar', methods=['POST'])
 def registrar_jetson():
@@ -87,12 +94,32 @@ def listar_agentes():
         for r in rows
     ])
 
+@app.route("/active_agents", methods=["GET"])
+def listar_agentes_activos():
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT nombre, ip_virtual, last_seen, status
+        FROM jetsons
+        WHERE status = 'connected'
+    """)
+    rows = cursor.fetchall()
+
+    return jsonify([
+        {
+            "nombre": r["nombre"],
+            "ip": r["ip_virtual"],
+            "status": r["status"],
+            "last_seen": r["last_seen"]
+        }
+        for r in rows
+    ])
+
 @app.route("/heartbeat", methods=["POST"])
 def heartbeat():
     nombre = request.json.get("nombre")
     if not nombre:
         return "", 400
-
+    
     cursor = conn.cursor()
     cursor.execute("""
         UPDATE jetsons
@@ -103,9 +130,46 @@ def heartbeat():
 
     return "", 204
 
+@app.route("/rotate", methods=["POST"])
+def rotate_key():
+    data = request.json or {}
+
+    nombre = data.get("nombre")
+    new_public_key = data.get("public_key")
+
+    if not nombre or not new_public_key:
+        return jsonify({"error": "missing fields"}), 400
+
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT ip_virtual FROM jetsons WHERE nombre=?",
+        (nombre,)
+    )
+    row = cursor.fetchone()
+
+    if not row:
+        return jsonify({"error": "unknown node"}), 404
+
+    ip = row["ip_virtual"]
+
+    cursor.execute("""
+        UPDATE jetsons
+        SET public_key = ?, rotated_at = datetime('now')
+        WHERE nombre = ?
+    """, (new_public_key, nombre))
+    conn.commit()
+
+    subprocess.run([
+        "wg", "set", "wg0",
+        "peer", new_public_key,
+        "allowed-ips", f"{ip}/32"
+    ], check=True)
+
+    return "", 204
+
+
 if __name__ == '__main__':
     configurar_red_sistema()
+    offline_thread = threading.Thread(target=offline_worker)
+    offline_thread.start()
     app.run(host='0.0.0.0', port=5000)
-    while True:
-        marcar_offline()
-        time.sleep(30)

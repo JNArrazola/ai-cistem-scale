@@ -62,3 +62,34 @@ def levantar_tunel():
         subprocess.run(["wg", "show", "wg0"], check=True, stdout=subprocess.DEVNULL)
     except subprocess.CalledProcessError:
         subprocess.run(["wg-quick", "up", "wg0"], check=True)
+
+def generar_nuevas_claves():
+    subprocess.run(
+        "wg genkey | tee keys/private.new | wg pubkey > keys/public.new",
+        shell=True,
+        check=True
+    )
+
+def solicitar_rotacion(hub_url, nombre, token):
+    with open("keys/public.new") as f:
+        pub = f.read().strip()
+
+    r = requests.post(
+        f"{hub_url}/rotate",
+        json={
+            "nombre": nombre,
+            "public_key": pub,
+            "token": token
+        },
+        timeout=10
+    )
+    r.raise_for_status()
+
+def aplicar_nueva_clave():
+    subprocess.run([
+        "wg", "set", "wg0",
+        "private-key", "keys/private.new"
+    ], check=True)
+
+    os.replace("keys/private.new", "keys/private.key")
+    os.replace("keys/public.new", "keys/public.key")
