@@ -1,5 +1,6 @@
 import os
 import subprocess
+import requests
 
 KEY_DIR = "keys"
 
