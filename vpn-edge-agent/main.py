@@ -1,9 +1,9 @@
 import os
 from dotenv import load_dotenv
-from functions import heartbeat
+from src.functions import heartbeat
+from src.functions import heartbeat_loop, rotation_loop, loop_conexion
 import threading
 import time
-from functions import heartbeat_loop, rotation_loop, loop_conexion
 
 load_dotenv()
 

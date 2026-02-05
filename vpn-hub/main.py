@@ -2,8 +2,8 @@ import os
 import subprocess
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
-from functions import configurar_red_sistema, agregar_peer_wireguard, guards
-from database import iniciar_db, asignar_ip_dinamica
+from src.functions import configurar_red_sistema, agregar_peer_wireguard, guards
+from src.database import iniciar_db, asignar_ip_dinamica
 import time
 from datetime import datetime
 import threading
@@ -17,7 +17,7 @@ def marcar_offline():
     cursor.execute("""
         UPDATE jetsons
         SET status = 'offline'
-        WHERE last_seen < datetime('now', '-1 seconds')
+        WHERE last_seen < datetime('now', '-30 seconds')
     """)
     conn.commit()
 
@@ -54,7 +54,7 @@ def registrar_jetson():
 def listar_agentes():
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT nombre, ip_virtual, last_seen, status
+        SELECT nombre, ip_virtual, last_seen, status, latency_ms
         FROM jetsons
     """)
     rows = cursor.fetchall()
@@ -74,7 +74,7 @@ def listar_agentes():
 def listar_agentes_activos():
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT nombre, ip_virtual, last_seen, status
+        SELECT nombre, ip_virtual, last_seen, status, latency_ms
         FROM jetsons
         WHERE status = 'connected'
     """)
