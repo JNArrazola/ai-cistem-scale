@@ -2,7 +2,7 @@ import os
 import subprocess
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
-
+from functions import configurar_red_sistema, agregar_peer_wireguard, guards
 from database import iniciar_db, asignar_ip_dinamica
 import time
 from datetime import datetime
@@ -12,37 +12,12 @@ load_dotenv()
 app = Flask(__name__)
 conn = iniciar_db()
 
-def configurar_red_sistema():
-    try:
-        subprocess.run(["wg", "show", "wg0"], check=True, stdout=subprocess.DEVNULL)
-    except subprocess.CalledProcessError:
-        subprocess.run(["wg-quick", "up", "wg0"], check=True)
-
-def agregar_peer_wireguard(public_key, ip_virtual):
-    subprocess.run([
-        "wg", "set", "wg0",
-        "peer", public_key,
-        "allowed-ips", f"{ip_virtual}/32"
-    ], check=True)
-
-def guards(nombre, token, public_key):
-    if not nombre or not public_key:
-        return jsonify({"error": "missing fields"}), 400
-
-    if len(nombre) > 64 or len(public_key) > 64:
-        return jsonify({"error": "invalid input"}), 400
-
-    if token != os.getenv("BOOTSTRAP_TOKEN"):
-        return jsonify({"error": "unauthorized"}), 401
-    
-    return None
-
 def marcar_offline():
     cursor = conn.cursor()
     cursor.execute("""
         UPDATE jetsons
         SET status = 'offline'
-        WHERE last_seen < datetime('now', '-60 seconds')
+        WHERE last_seen < datetime('now', '-1 seconds')
     """)
     conn.commit()
 
@@ -89,6 +64,7 @@ def listar_agentes():
             "nombre": r["nombre"],
             "ip": r["ip_virtual"],
             "status": r["status"],
+            "latency_ms": r["latency_ms"],
             "last_seen": r["last_seen"]
         }
         for r in rows
@@ -109,6 +85,7 @@ def listar_agentes_activos():
             "nombre": r["nombre"],
             "ip": r["ip_virtual"],
             "status": r["status"],
+            "latency_ms": r["latency_ms"],
             "last_seen": r["last_seen"]
         }
         for r in rows
@@ -117,15 +94,17 @@ def listar_agentes_activos():
 @app.route("/heartbeat", methods=["POST"])
 def heartbeat():
     nombre = request.json.get("nombre")
+    latency_ms = request.json.get("latency_ms")
+
     if not nombre:
         return "", 400
     
     cursor = conn.cursor()
     cursor.execute("""
         UPDATE jetsons
-        SET last_seen = ?, status = 'connected'
+        SET last_seen = ?, status = 'connected', latency_ms = ?
         WHERE nombre = ?
-    """, (datetime.utcnow(), nombre))
+    """, (datetime.utcnow(), latency_ms, nombre))
     conn.commit()
 
     return "", 204
@@ -154,7 +133,7 @@ def rotate_key():
 
     cursor.execute("""
         UPDATE jetsons
-        SET public_key = ?, rotated_at = datetime('now')
+        SET public_key = ?
         WHERE nombre = ?
     """, (new_public_key, nombre))
     conn.commit()
@@ -166,7 +145,6 @@ def rotate_key():
     ], check=True)
 
     return "", 204
-
 
 if __name__ == '__main__':
     configurar_red_sistema()

@@ -15,6 +15,7 @@ def iniciar_db():
             public_key TEXT,
             ip_virtual TEXT,
             last_seen DATETIME,
+            latency_ms REAL,
             status TEXT
         )
     ''')
