@@ -28,6 +28,14 @@ pip install -r requirements.txt
 
 ## Environment Variables
 Create a `.env` file in the `vpn-edge-agent`, following the structure of the provided [.env.example](./.env.example) file.
+Explain each variable:
+* `NODE_NAME`: A unique identifier for the client device, e.g., `jetson1`.
+* `HUB_URL`: The URL of the VPN Hub, e.g., `http://<real_hub_ip>:5000`.
+* `BOOTSTRAP_TOKEN`: A secure token that matches the one in the VPN Hub.
+* `HEARTBEAT_INTERVAL`: Interval in seconds for sending heartbeat messages to the hub (e.g., `30`).
+* `ROTATE_INTERVAL`: Interval in seconds for rotating the WireGuard keys (e.g., `86400` for 24 hours).
+* `CONNECT_RETRY_INTERVAL`: Interval in seconds to wait before retrying connection to the hub if it fails (e.g., `15`).
+
 
 ## Running the VPN Edge Agent
 Run the VPN Edge Agent with root privileges, preserving the environment variables with `sudo -E`:

@@ -70,13 +70,18 @@ sudo wg-quick up wg0
 1. Navigate to the `vpn-hub` directory.
 2. Create a virtual environment and install dependencies:
     ```bash
-        python3 -m venv venv
-        source venv/bin/activate
-        pip install -r doc/requirements.txt
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install -r doc/requirements.txt
     ```
-3. Set up the environment variables in a `.env` file (refer to `.env.example` for guidance).
+3. Set up the environment variables in a `.env` file (refer to [.env.example](./doc/.env.example) for guidance).
+    Explain each variable:
+    * `HUB_PUBLIC_KEY`: The public key of the hub (from `hub_public.key`).
+    * `HUB_ENDPOINT`: The public IP address or domain name of the hub. You can get it using `ip a` on the hub machine.
+    * `HUB_PORT`: The port WireGuard is listening on (default is `51820`).
+    * `BOOTSTRAP_TOKEN`: A secure token that clients will use to authenticate with the hub.
 4. Run the Flask application with sudo to allow it to manage WireGuard, and using the `-E` flag to preserve environment variables:
     ```bash
-        sudo -E ./venv/bin/python main.py
+    sudo -E ./venv/bin/python main.py
     ```
 5. The hub should now be running and ready to accept client connections.
