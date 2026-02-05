@@ -28,7 +28,7 @@ pip install -r requirements.txt
 
 ## Environment Variables
 Create a `.env` file in the `vpn-edge-agent`, following the structure of the provided [.env.example](./.env.example) file.
-Explain each variable:
+Explanation of each variable:
 * `NODE_NAME`: A unique identifier for the client device, e.g., `jetson1`.
 * `HUB_URL`: The URL of the VPN Hub, e.g., `http://<real_hub_ip>:5000`.
 * `BOOTSTRAP_TOKEN`: A secure token that matches the one in the VPN Hub.

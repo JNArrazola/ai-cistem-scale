@@ -75,7 +75,7 @@ sudo wg-quick up wg0
     pip install -r doc/requirements.txt
     ```
 3. Set up the environment variables in a `.env` file (refer to [.env.example](./doc/.env.example) for guidance).
-    Explain each variable:
+    Explanation of each variable:
     * `HUB_PUBLIC_KEY`: The public key of the hub (from `hub_public.key`).
     * `HUB_ENDPOINT`: The public IP address or domain name of the hub. You can get it using `ip a` on the hub machine.
     * `HUB_PORT`: The port WireGuard is listening on (default is `51820`).
