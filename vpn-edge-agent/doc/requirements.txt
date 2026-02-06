@@ -2,4 +2,4 @@ dotenv
 requests
 opencv-python
 flask
-socketio
+python-socketio
