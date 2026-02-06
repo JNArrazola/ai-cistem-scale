@@ -26,18 +26,23 @@
 1. Open a terminal and navigate to the `./vpn-edge-agent/` directory.
 2. Be sure you are running the VPN Edge Agent and the VPN connection is active (in parallel terminal).
 3. Ensure the hub server is running and accessible through the VPN connection, and run the `hub_json_receiver.py` script, this script has code related to events so it needs to be running to receive the payload.
-4. Install the required dependencies for the `client_payload.js` script if you haven't already:
+4. Install the required dependencies for the `client_payload.py` script if you haven't already:
    ```bash
-   npm install socket.io-client
+   pip install python-socketio
    ```
-5. In the terminal of the agent, run the following command to execute the `client_payload.js` script:
+5. In the terminal of the agent, run the following command to execute the `client_payload.py` script:
    ```bash
-   node tests/client_payload.js
+   python tests/client_payload.py
    ```
 6. The script will attempt to send a test payload to the hub server through the VPN connection. If successful, you should see a confirmation message in the hub indicating that the payload was sent successfully.
    ```bash
    Conectado
    Respuesta: {status:'ok}
+   ```
+7. And in the hub terminal, you should see the received payload:
+   ```bash
+   10.0.0.2 - - [06/Feb/2026 02:41:39] "GET /socket.io/?transport=polling&EIO=4&sid=dJ7uaaMLPH9maUvlAAAA&t=1770367299.34054
+   JSON recibido: {'mensaje': 'Hola servidor'}
    ```
 
 ## Test 3: Hub Video Streamer Test

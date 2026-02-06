@@ -1,5 +1,5 @@
 /vpn-edge-agent/.env
-/vpn-edge-agent/__pycache__/
+/vpn-edge-agent/src/__pycache__/
 /vpn-edge-agent/venv/
 /vpn-edge-agent/env/
 
