@@ -7,6 +7,7 @@
 /vpn-hub/venv/
 /vpn-hub/env/
 /vpn-hub/.env
+/vpn-hub/vpn_hub.db
 
 /vpn-hub/*.key
 /vpn-edge-agent/*.key
