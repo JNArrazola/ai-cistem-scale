@@ -1,8 +1,10 @@
 /vpn-edge-agent/.env
 /vpn-edge-agent/src/__pycache__/
+/vpn-edge-agent/__pycache__/
 /vpn-edge-agent/venv/
 /vpn-edge-agent/env/
 
+/vpn-hub/src/__pycache__/
 /vpn-hub/__pycache__/
 /vpn-hub/venv/
 /vpn-hub/env/
